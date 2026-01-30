@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 #include <unordered_set>
+#include <cstdlib>
 
 #include "common.h"
 #include "ggml.h"
@@ -2053,6 +2054,18 @@ int main(int argc, char ** argv) {
     ggml_backend_load_all();
 
     cmd_params params = parse_cmd_params(argc, argv);
+
+    int threads_hint = 0;
+    for (const auto & nt : params.n_threads) {
+        threads_hint = std::max(threads_hint, nt);
+    }
+    if (threads_hint <= 0) {
+        threads_hint = (int) std::thread::hardware_concurrency();
+    }
+    if (threads_hint > 0) {
+        std::string env_val = std::to_string(threads_hint);
+        setenv("GGML_TOTAL_THREADS", env_val.c_str(), 1);
+    }
 
     auto * cpu_dev = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU);
     if (!cpu_dev) {

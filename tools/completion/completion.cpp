@@ -5,6 +5,7 @@
 #include "sampling.h"
 #include "llama.h"
 #include "chat.h"
+#include <cstdlib>
 
 #include <cstdio>
 #include <cstring>
@@ -92,6 +93,12 @@ int main(int argc, char ** argv) {
     }
 
     common_init();
+
+    const int threads_hint = std::max(params.cpuparams.n_threads, params.cpuparams_batch.n_threads);
+    if (threads_hint > 0) {
+        std::string env_val = std::to_string(threads_hint);
+        setenv("GGML_TOTAL_THREADS", env_val.c_str(), 1);
+    }
 
     auto & sparams = params.sampling;
 
